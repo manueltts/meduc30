@@ -10,47 +10,55 @@
 # que siguen. El script verificará y descargará según corresponda en la misma
 # ubicación y con el mismo nombre de archivo definidos aquí.
 
-file1 <- "./data/meduc30_2004-2011.xls"
-file2 <- "./data/meduc30_2012.xlsx"
-file3 <- "./data/meduc30_2013.xlsx"
-file4 <- "./data/meduc30_2014.xlsx"
+setwd("meduc30")
 
-if(!dir.exists("./data")) {
-        dir.create("./data")
-}
+file1 <- "./data/Base maestra 2004-2011.csv"
+file2 <- "./data/Base 2012.csv"
+file3 <- "./data/Base 2013.csv"
+file4 <- "./data/Base 2014.csv"
 
-if(!file.exists(file1)) {
-        message('Descargando datos meduc30 2004-2011')
-        fileUrl1 <- "https://www.dropbox.com/s/b7zi428wgyg2rip/Base%20maestra%202004-2011.xls?dl=0"
-        download.file(fileUrl1, file1, mode = "wb")
-} else {
-        message('Encontrados datos meduc30 2004-2011')
-}
-
-if(!file.exists(file2)) {
-        message('Descargando datos meduc30 2012')
-        fileUrl2 <- "https://www.dropbox.com/s/8zgzknslga9domg/Base%202012.xlsx?dl=0"
-        download.file(fileUrl2, file2, mode = "wb")
-} else {
-        message('Encontrados datos meduc30 2012')
-}
-
-if(!file.exists(file3)) {
-        message('Descargando datos meduc30 2013')
-        fileUrl3 <- "https://www.dropbox.com/s/mt5elphy0fsxy0b/Base%202013.xlsx?dl=0"
-        download.file(fileUrl3, file3, mode = "wb")
-} else {
-        message('Encontrados datos meduc30 2013')
-}
-
-if(!file.exists(file4)) {
-        message('Descargando datos meduc30 2014')
-        fileUrl4 <- "https://www.dropbox.com/s/fk9vqawxzv60ke2/Base%202014.xlsx?dl=0"
-        download.file(fileUrl3, file4, mode = "wb")
-} else {
-        message('Encontrados datos meduc30 2014')
-}
 
 #Carga los archivos .xls y .xlsx como 'data frames'
-library(XLConnect)}
-meduc_2004.2011 <- readWorksheetFromFile(file1, sheet = 1)
+library(XLConnect)
+library(dplyr)
+meduc_2004.2011 <- tbl_df(read.csv(file1))
+meduc_2012 <- tbl_df(read.csv(file2))
+meduc_2013 <- tbl_df(read.csv(file3))
+meduc_2014 <- tbl_df(read.csv(file4))
+
+meduc_2004.2011a <- meduc_2004.2011 %>%
+        rename(nombres = Nombres, paterno = Paterno, materno = Materno,
+               nombre.completo = NombreCompleto,
+               contacto.sem.al = contacto..sem.al., departamento = DEPARTAMENTO,
+               evaluacion = evaluación, comprension = comprensión,
+               promocion.autoaprendizaje = promocion.del.autoaprendizaje,
+               control.sesion = control.sesión)
+
+meduc_2012a <- meduc_2012 %>%
+        rename(nombres = Nombres, paterno = Paterno, materno = Materno,
+               nombre.completo = NombreCompleto, fecha = Fecha,
+               contacto.sem.al = contacto..sem.al.,
+               departamento = Departamento, pacientes = X.1, objetivos = X.2,
+               evaluacion = X.3, comprension = X.4,
+               promocion.autoaprendizaje = X.5, control.sesion = X.6,
+               feedback = X.7, clima.aprendizaje = X.8)
+
+
+meduc_2013a <- meduc_2013 %>%
+        rename(nombres = Nombres, paterno = Paterno, materno = Materno,
+               nombre.completo = NombreCompleto, fecha = Fecha,
+               departamento = DEPARTAMENTO, evaluacion = evaluación,
+               comprension = comprensión,
+               promocion.autoaprendizaje = promocion.del.autoaprendizaje,
+               control.sesion = control.sesión)
+
+
+meduc_2014a <- meduc_2014
+
+
+meduc_names <- rbind(colnames(meduc_2004.2011), colnames(meduc_2012),
+                     colnames(meduc_2013), colnames(meduc_2014))
+
+
+meduc_2004.2012 <- tbl_df(rbind(meduc_2004.2011, meduc_2012))
+meduc_2013.2014 <- tbl_df(rbind(meduc_2013, meduc_2014))
