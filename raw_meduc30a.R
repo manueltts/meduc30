@@ -16,41 +16,20 @@
 # Se asigna el directorio de trabajo, y la ubicación de los archivos originales
 # en formato .csv dentro de este directorio.
 
-setwd("meduc30")
-file1 <- "./data/Base maestra 2004-2011.xls"
-file2 <- "./data/Base 2012.xlsx"
-file3 <- "./data/Base 2013.xlsx"
-file4 <- "./data/Base 2014.xlsx"
+#setwd("meduc30")
 
-# Carga los archivos .xls y .xlsx con el paquete XLConnnect
+file1 <- "./data/Base maestra 2004-2011.csv"
+file2 <- "./data/Base 2012.csv"
+file3 <- "./data/Base 2013.csv"
+file4 <- "./data/Base 2014.csv"
 
-options(java.parameters = "-Xmx1024m") #esto es para evitar saturación de
-#                                       procesador.
-library(XLConnect)
+# Carga los archivos .csv como data frame tables, con el paquete dplyr
+
 library(dplyr)
-
-wb1 <- loadWorkbook(file1)
-setMissingValue(wb1, value = c(""))
-meduc_2004.2011 <- readWorksheet(wb1, sheet= 1, header=TRUE)
-
-wb2 <- loadWorkbook(file2)
-setMissingValue(wb2, value = c(""))
-meduc_2012 <- readWorksheet(wb2, sheet= 1, header=TRUE)
-
-wb3 <- loadWorkbook(file3)
-setMissingValue(wb3, value = c(""))
-meduc_2013 <- readWorksheet(wb3, sheet= 1, header=TRUE)
-
-wb4 <- loadWorkbook(file4)
-setMissingValue(wb4, value = c(""))
-meduc_2014 <- readWorksheet(wb4, sheet= 1, header=TRUE)
-
-# Transforma los data frames en data frame tables, con el paquete dplyr
-
-meduc_2004.2011 <- tbl_df(meduc_2004.2011)
-meduc_2012 <- tbl_df(meduc_2012)
-meduc_2013 <- tbl_df(meduc_2013)
-meduc_2014 <- tbl_df(meduc_2014)
+meduc_2004.2011 <- tbl_df(read.csv(file1))
+meduc_2012 <- tbl_df(read.csv(file2))
+meduc_2013 <- tbl_df(read.csv(file3))
+meduc_2014 <- tbl_df(read.csv(file4))
 
 # Se crean variables de n muestral para cada año desde 2012, y para la muestra
 # total hasta 2011, 2012, 2013 y 2014 respectivamente
@@ -87,11 +66,10 @@ meduc_2012a <- meduc_2012 %>%
         rename(nombres = Nombres, paterno = Paterno, materno = Materno,
                nombre.completo = NombreCompleto, fecha = Fecha,
                contacto.sem.al = contacto..sem.al.,
-               departamento = Departamento, pacientes = Col44, 
-               objetivos = Col45,
-               evaluacion = Col46, comprension = Col47,
-               promocion.autoaprendizaje = Col48, control.sesion = Col49,
-               feedback = Col50, clima.aprendizaje = Col51) %>%
+               departamento = Departamento, pacientes = X.1, objetivos = X.2,
+               evaluacion = X.3, comprension = X.4,
+               promocion.autoaprendizaje = X.5, control.sesion = X.6,
+               feedback = X.7, clima.aprendizaje = X.8) %>%
         mutate(id = (n_2004.2011 + 1):(n_2004.2012))
 
 meduc_2013a <- meduc_2013 %>%
@@ -108,61 +86,27 @@ meduc_2014a <- meduc_2014 %>%
         rename(nombres = Nombres, paterno = Paterno, materno = Materno,
                nombre.completo = NombreCompleto, fecha = Fecha,
                contacto.sem.al = contacto..sem.al.,
-               departamento = DEPARTAMENTO, evaluacion = evaluación,
-               comprension = comprensión,
+               departamento = DEPARTAMENTO, evaluacion = evaluaci.n,
+               comprension = comprensi.n,
                promocion.autoaprendizaje = promocion.del.autoaprendizaje,
-               control.sesion = control.sesión) %>%
+               control.sesion = control.sesi.n) %>%
         mutate(id = (n_2004.2013 + 1):(n_2004.2014))
-
-# Se hacen algunos ajustes a ciertas variables para homogeneizar las clases, y
-# así poder combinar los datos en una sola tabla 2004-2014.
-
-meduc_2004.2011b <- meduc_2004.2011a
-meduc_2004.2011b[, 13:42] = apply(meduc_2004.2011a[, 13:42], 2, 
-                                  function(x) as.numeric(x))
-
-meduc_2012b <- meduc_2012a %>%
-        mutate(RUT = gsub("-[0-9]","", meduc_2012$RUT)) %>%
-        mutate(RUT = as.numeric(gsub("[a-zA-z ,.]","", RUT)),
-               X1 = as.numeric(X1), X13 = as.numeric(X13))
-
-meduc_2013b <- meduc_2013a %>%
-        mutate(X13 = as.numeric(X13))
-
-meduc_2014b <- meduc_2014a %>%
-        mutate(RUT = gsub("-[0-9]","", meduc_2014$RUT)) %>%
-        mutate(RUT = as.numeric(gsub("[a-zA-z ,.]","", RUT)),
-               ev.global = as.numeric(ev.global))
-
-# Calculo de los NA generados, para comprobar inocuidad de transformaciones
-# 
-a.NA <- sum(is.na(meduc_2004.2011a), is.na(meduc_2012a), is.na(meduc_2013a), 
-            is.na(meduc_2014a))
-b.NA <-  sum(is.na(meduc_2004.2011b), is.na(meduc_2012b), is.na(meduc_2013b),
-              is.na(meduc_2014b))
-
-#    deltaNA    / (  n   * vars)
-# (b.NA - a.NA) / (22880 * 30  ) = 0.12%
-
 
 # Se combinan las 4 bases de datos en una base única 2004 - 2014, se utilizan 2
 # métodos con resultados idénticos registrados en data frame tables diferentes.
 
-meduc30a <- meduc_2004.2011b %>%
-        full_join(meduc_2012b) %>%
-        full_join(meduc_2013b) %>%
-        full_join(meduc_2014b)
+meduc30a <- meduc_2004.2011a %>%
+        full_join(meduc_2012a) %>%
+        full_join(meduc_2013a) %>%
+        full_join(meduc_2014a)
 
-meduc30b <- bind_rows(meduc_2004.2011b, meduc_2012b, meduc_2013b, meduc_2014b)
+meduc30b <- bind_rows(meduc_2004.2011a, meduc_2012a, meduc_2013a, meduc_2014a)
 
 #Selecciona únicamente las variables con información (elimina "X.1", "X.2", etc)
 
-meduc30_raw <- select(meduc30a, id, nombres:contacto.sem.al, departamento, 
+meduc30c <- select(meduc30a, id, nombres:contacto.sem.al, departamento, 
                    division, X1:clima.aprendizaje)
 
 # Exporta los datos como csv
 
-write.csv(meduc30_raw, "./data/meduc30_raw.csv", row.names = FALSE)
-rm(meduc_2004.2011, meduc_2004.2011a, meduc_2004.2011b, meduc_2012, meduc_2012a,
-   meduc_2012b, meduc_2013, meduc_2013a, meduc_2013b, meduc_2014, meduc_2014a,
-   meduc_2014b, meduc30a, meduc30b)
+write.csv(meduc30c, "./data/meduc30a_raw.csv", row.names = FALSE)
