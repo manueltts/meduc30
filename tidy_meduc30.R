@@ -1,64 +1,32 @@
-
-
-# A continuación se verifica las bases de datos originales están
-# disponibles en "./data"
+# Este es el tercer script de la serie para preparar los datos de medu30
+# 2004-2014. Este último script toma como input la base de datos producida en
+# el segundo 'clean_meduc30.R'.
 # 
-# En caso contrario, las descarga en esa localización, creando el directorio
-# si es necesario.
-# 
-# Se puede especificar otra ubicación y nombre de los archivos en las lineas
-# que siguen. El script verificará y descargará según corresponda en la misma
-# ubicación y con el mismo nombre de archivo definidos aquí.
+# El propósito de este script es lograr una configuración de bases de datos que
+# cumpla con lo que se ha denominado 'Tidy data' (Wickham, 2014). Esta se define
+# del siguiente modo:
+#       - es la meta final del proceso de preparación de datos
+#       - cada variable debiera estar en una columna
+#       - cada observación de esa variable debiera estar en una fila diferente
+#       - debiera haber una tabla diferente para cada tipo de variable
+#               - si hay multiples tablas, debiera haber una columna para
+#               vincularlas
+#       - se debiera incluir una fila al comienzo de cada archivo con los
+#       nombres de las variables; estos debieran hacer sentido
+#       - en general, los datos debieran guardarse en un archivo por tabla
+#       
+# El resultado del script es guardado en:
+#       'meduc30.csv'
+#       'meduc30_tutores.csv'
+#       'meduc30_cursos.csv'
+#       'tutor_id.csv'
+#       'curso_id.csv'
 
-setwd("meduc30")
+meduc30e <- meduc30d
+meduc30e$tutor <- group_indices(meduc30d, RUT)
 
-file1 <- "./data/Base maestra 2004-2011.csv"
-file2 <- "./data/Base 2012.csv"
-file3 <- "./data/Base 2013.csv"
-file4 <- "./data/Base 2014.csv"
+# Separa datos del tutor en identificadores por un lado, y sexo por otro.
 
+# Separar datos de los cursos
 
-#Carga los archivos .xls y .xlsx como 'data frames'
-library(XLConnect)
-library(dplyr)
-meduc_2004.2011 <- tbl_df(read.csv(file1))
-meduc_2012 <- tbl_df(read.csv(file2))
-meduc_2013 <- tbl_df(read.csv(file3))
-meduc_2014 <- tbl_df(read.csv(file4))
-
-meduc_2004.2011a <- meduc_2004.2011 %>%
-        rename(nombres = Nombres, paterno = Paterno, materno = Materno,
-               nombre.completo = NombreCompleto,
-               contacto.sem.al = contacto..sem.al., departamento = DEPARTAMENTO,
-               evaluacion = evaluación, comprension = comprensión,
-               promocion.autoaprendizaje = promocion.del.autoaprendizaje,
-               control.sesion = control.sesión)
-
-meduc_2012a <- meduc_2012 %>%
-        rename(nombres = Nombres, paterno = Paterno, materno = Materno,
-               nombre.completo = NombreCompleto, fecha = Fecha,
-               contacto.sem.al = contacto..sem.al.,
-               departamento = Departamento, pacientes = X.1, objetivos = X.2,
-               evaluacion = X.3, comprension = X.4,
-               promocion.autoaprendizaje = X.5, control.sesion = X.6,
-               feedback = X.7, clima.aprendizaje = X.8)
-
-
-meduc_2013a <- meduc_2013 %>%
-        rename(nombres = Nombres, paterno = Paterno, materno = Materno,
-               nombre.completo = NombreCompleto, fecha = Fecha,
-               departamento = DEPARTAMENTO, evaluacion = evaluación,
-               comprension = comprensión,
-               promocion.autoaprendizaje = promocion.del.autoaprendizaje,
-               control.sesion = control.sesión)
-
-
-meduc_2014a <- meduc_2014
-
-
-meduc_names <- rbind(colnames(meduc_2004.2011), colnames(meduc_2012),
-                     colnames(meduc_2013), colnames(meduc_2014))
-
-
-meduc_2004.2012 <- tbl_df(rbind(meduc_2004.2011, meduc_2012))
-meduc_2013.2014 <- tbl_df(rbind(meduc_2013, meduc_2014))
+# Consolidar puntuaciones sin puntajes por factor: id, tutor, curso y respuestas.
