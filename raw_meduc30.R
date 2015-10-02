@@ -116,23 +116,24 @@ meduc_2014a <- meduc_2014 %>%
 
 # Se hacen algunos ajustes a ciertas variables para homogeneizar las clases, y
 # así poder combinar los datos en una sola tabla 2004-2014.
+library(tidyr)
 
 meduc_2004.2011b <- meduc_2004.2011a
 meduc_2004.2011b[, 13:42] = apply(meduc_2004.2011a[, 13:42], 2, 
-                                  function(x) as.numeric(x))
+                                  function(x) extract_numeric(x))
 
 meduc_2012b <- meduc_2012a %>%
         mutate(RUT = gsub("-[0-9]","", meduc_2012$RUT)) %>%
         mutate(RUT = as.numeric(gsub("[a-zA-z ,.]","", RUT)),
-               X1 = as.numeric(X1), X13 = as.numeric(X13))
+               X1 = extract_numeric(X1), X13 = extract_numeric(X13))
 
 meduc_2013b <- meduc_2013a %>%
-        mutate(X13 = as.numeric(X13))
+        mutate(X13 = extract_numeric(X13))
 
 meduc_2014b <- meduc_2014a %>%
         mutate(RUT = gsub("-[0-9]","", meduc_2014$RUT)) %>%
         mutate(RUT = as.numeric(gsub("[a-zA-z ,.]","", RUT)),
-               ev.global = as.numeric(ev.global))
+               ev.global = extract_numeric(ev.global))
 
 # Calculo de los NA generados, para comprobar inocuidad de transformaciones
 # 
@@ -163,6 +164,6 @@ meduc30_raw <- select(meduc30a, id, nombres:contacto.sem.al, departamento,
 # Exporta los datos como csv
 
 write.csv(meduc30_raw, "./data/meduc30_raw.csv", row.names = FALSE)
-rm(meduc_2004.2011, meduc_2004.2011a, meduc_2004.2011b, meduc_2012, meduc_2012a,
+rm(wb1, wb2, wb3, wb4, meduc_2004.2011, meduc_2004.2011a, meduc_2004.2011b, meduc_2012, meduc_2012a,
    meduc_2012b, meduc_2013, meduc_2013a, meduc_2013b, meduc_2014, meduc_2014a,
    meduc_2014b, meduc30a, meduc30b)
