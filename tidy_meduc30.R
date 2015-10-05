@@ -18,15 +18,30 @@
 # El resultado del script es guardado en:
 #       'meduc30.csv'
 #       'meduc30_tutores.csv'
-#       'meduc30_cursos.csv'
-#       'tutor_id.csv'
-#       'curso_id.csv'
 
-meduc30e <- meduc30d
-meduc30e$tutor <- group_indices(meduc30d, RUT)
+library(dplyr)
 
-# Separa datos del tutor en identificadores por un lado, y sexo por otro.
+if(!file.exists("./data/meduc30_clean.csv")) {
+        setwd("meduc30")
+}
+meduc30 <- tbl_df(read.csv("./data/meduc30_clean.csv"))
 
-# Separar datos de los cursos
+# Creación de idtutor para cada observación, en base al rut
+meduc30a <- meduc30
+meduc30a$idtutor <- group_indices(meduc30a, rut)
 
-# Consolidar puntuaciones sin puntajes por factor: id, tutor, curso y respuestas.
+# Creación de tabla de datos de tutores
+
+meduc30_tutores <- select(meduc30a, idtutor, nombres, paterno, materno, sexo,
+                          rut, dv) %>%
+        filter(!duplicated(idtutor)) %>%
+        arrange(paterno)
+
+# Eliminación de variables de docente, excepto idtutor y sexo, de la tabla
+# principal
+
+meduc30b <- select(meduc30a, id, idtutor, sexo, curso:evglobal)
+
+# Exportar las tablas
+write.csv(meduc30_tutores, "./data/meduc30_tutores.csv", row.names = FALSE)
+write.csv(meduc30b, "./data/meduc30.csv", row.names = FALSE)

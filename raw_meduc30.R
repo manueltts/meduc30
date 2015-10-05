@@ -10,24 +10,27 @@
 #       base de datos de entrada.
 #       6. Exporta la base de datos unificadas como 'meduc30_raw.csv'
 
+options(java.parameters = "-Xmx2048m") #esto es para evitar saturación de
+#                                       procesador.
+library(XLConnect)
+library(dplyr)
+library(tidyr)
 
 #Ejecución
 ##########
 # Se asigna el directorio de trabajo, y la ubicación de los archivos originales
 # en formato .csv dentro de este directorio.
 
-#setwd("meduc30")
 file1 <- "./data/Base maestra 2004-2011.xls"
 file2 <- "./data/Base 2012.xlsx"
 file3 <- "./data/Base 2013.xlsx"
 file4 <- "./data/Base 2014.xlsx"
 
-# Carga los archivos .xls y .xlsx con el paquete XLConnnect
+if(!file.exists(file1)) {
+        setwd("meduc30")
+}
 
-options(java.parameters = "-Xmx1024m") #esto es para evitar saturación de
-#                                       procesador.
-library(XLConnect)
-library(dplyr)
+# Carga los archivos .xls y .xlsx con el paquete XLConnnect
 
 wb1 <- loadWorkbook(file1)
 setMissingValue(wb1, value = c(""))
@@ -51,6 +54,14 @@ meduc_2004.2011 <- tbl_df(meduc_2004.2011)
 meduc_2012 <- tbl_df(meduc_2012)
 meduc_2013 <- tbl_df(meduc_2013)
 meduc_2014 <- tbl_df(meduc_2014)
+
+# Eliminación de filas correspondientes al cálculo del promedio por grupo para
+# algunas variables. Se usa la variable 'sexo' como discriminadora
+
+meduc_2004.2011 <- filter(meduc_2004.2001, !is.na(sexo))
+meduc_2012 <- filter(meduc_2012, !is.na(sexo))
+meduc_2013 <- filter(meduc_2013, !is.na(sexo))
+meduc_2014 <- filter(meduc_2014, !is.na(sexo))
 
 # Se crean variables de n muestral para cada año desde 2012, y para la muestra
 # total hasta 2011, 2012, 2013 y 2014 respectivamente
@@ -116,7 +127,6 @@ meduc_2014a <- meduc_2014 %>%
 
 # Se hacen algunos ajustes a ciertas variables para homogeneizar las clases, y
 # así poder combinar los datos en una sola tabla 2004-2014.
-library(tidyr)
 
 meduc_2004.2011b <- meduc_2004.2011a
 meduc_2004.2011b[, 13:42] = apply(meduc_2004.2011a[, 13:42], 2, 
@@ -164,6 +174,6 @@ meduc30_raw <- select(meduc30a, id, nombres:contacto.sem.al, departamento,
 # Exporta los datos como csv
 
 write.csv(meduc30_raw, "./data/meduc30_raw.csv", row.names = FALSE)
-rm(wb1, wb2, wb3, wb4, meduc_2004.2011, meduc_2004.2011a, meduc_2004.2011b, meduc_2012, meduc_2012a,
-   meduc_2012b, meduc_2013, meduc_2013a, meduc_2013b, meduc_2014, meduc_2014a,
-   meduc_2014b, meduc30a, meduc30b)
+#rm(wb1, wb2, wb3, wb4, meduc_2004.2011, meduc_2004.2011a, meduc_2004.2011b, meduc_2012, meduc_2012a,
+#   meduc_2012b, meduc_2013, meduc_2013a, meduc_2013b, meduc_2014, meduc_2014a,
+#   meduc_2014b, meduc30a, meduc30b)
